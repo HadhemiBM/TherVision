@@ -67,6 +67,8 @@
 //   }
 // }
 import 'package:flutter/material.dart';
+import 'package:thervision/core/constants/app_colors.dart';
+import 'package:thervision/presentation/home/home_screen.dart';
 import 'core/routes/app_routes.dart';
 import 'presentation/splash/splash_screen.dart';
 import 'presentation/auth/login_screen.dart';
@@ -81,12 +83,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        splashColor: Colors.transparent,
+        // enlève le violet
+        hoverColor: AppColors.bgNavbar, // enlève le hover violet
+      ),
       title: 'TherVision',
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       routes: {
-        AppRoutes.splash: (context) => const SplashScreen(),
-        AppRoutes.login: (context) => const LoginScreen(),
+        '/': (context) => const SplashScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
       },
     );
   }

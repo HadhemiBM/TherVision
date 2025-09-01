@@ -1,31 +1,5 @@
-// import 'package:flutter/material.dart';
-// import '../../core/constants/app_colors.dart';
-
-// class LoginScreen extends StatelessWidget {
-//   const LoginScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//      body: Container(
-//          width: double.infinity,
-//   height: double.infinity,
-//         decoration: BoxDecoration(
-//           image: DecorationImage(
-//             image: AssetImage("assets/BackgroundLogin.png"),
-//             fit: BoxFit.fill,
-//           ),
-//         ),
-//         child: Center(
-//         child: Text(
-//           "LOGIN",
-//           style: TextStyle(fontSize: 40, color: AppColors.primary),
-//         ),
-//       ),
-//     ));
-//   }
-// }
 import 'package:flutter/material.dart';
+import 'package:thervision/core/routes/app_routes.dart';
 import 'package:thervision/presentation/home/home_screen.dart';
 import '../../core/constants/app_colors.dart';
 
@@ -46,16 +20,19 @@ class LoginScreen extends StatelessWidget {
           Center(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                double width = constraints.maxWidth < 600
-                    ? constraints.maxWidth * 0.9 // mobile
-                    : constraints.maxWidth < 1200
-                        ? constraints.maxWidth * 0.5 // tablet
+                double width =
+                    constraints.maxWidth < 600
+                        ? constraints.maxWidth *
+                            0.9 // mobile
+                        : constraints.maxWidth < 1200
+                        ? constraints.maxWidth *
+                            0.5 // tablet
                         : constraints.maxWidth * 0.3; // desktop/web
                 return Container(
                   width: width,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -109,12 +86,12 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.pushReplacement(
+                            Navigator.pushReplacementNamed(
                               context,
-                              MaterialPageRoute(
-                                  builder: (context) => HomeScreen()),
+                              AppRoutes.home,
                             );
                           },
+
                           child: Text(
                             "LOGIN",
                             style: TextStyle(fontSize: 16, color: Colors.white),
