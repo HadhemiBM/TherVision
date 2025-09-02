@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:thervision/core/constants/app_colors.dart';
-import 'package:thervision/core/widgets/MainScaffold.dart';
+import 'package:thervision/core/routes/app_routes.dart';
 import 'package:thervision/core/widgets/analyse_screen.dart';
+
+import 'MainScaffold.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,11 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   SizedBox(width: 20),
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.push(
+                                      Navigator.pushReplacementNamed(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AnalyseScreen(),
-                                        ),
+                                        AppRoutes.analyse,
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -148,12 +148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     SizedBox(height: 20),
                                     ElevatedButton(
                                       onPressed: () {
-                                        Navigator.push(
+                                        Navigator.pushReplacementNamed(
                                           context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) => AnalyseScreen(),
-                                          ),
+                                          AppRoutes.analyse,
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:thervision/core/routes/app_routes.dart';
-import 'package:thervision/presentation/home/home_screen.dart';
-import '../../core/constants/app_colors.dart';
+
+import '../constants/app_colors.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

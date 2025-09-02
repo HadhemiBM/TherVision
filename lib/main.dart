@@ -68,10 +68,11 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:thervision/core/constants/app_colors.dart';
-import 'package:thervision/presentation/home/home_screen.dart';
+import 'package:thervision/core/widgets/analyse_screen.dart';
+import 'package:thervision/core/widgets/home_screen.dart';
 import 'core/routes/app_routes.dart';
-import 'presentation/splash/splash_screen.dart';
-import 'presentation/auth/login_screen.dart';
+import 'core/widgets/splash_screen.dart';
+import 'core/widgets/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
+        '/analyse': (context) => const AnalyseScreen(),
       },
     );
   }
