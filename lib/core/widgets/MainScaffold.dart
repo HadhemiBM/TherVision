@@ -52,21 +52,7 @@ class MainScaffold extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // ListTile(
-                        //   leading: Icon(
-                        //     Icons.description,
-                        //     color: AppColors.primary,
-                        //   ),
-                        //   title: Text(
-                        //     'Fichier',
-                        //     style: const TextStyle(color: AppColors.primary),
-                        //   ),
-                        //   selected: currentIndex == 0,
-                        //   onTap: () {
-                        //     Navigator.pop(context);
-                        //     onTabTapped(0);
-                        //   },
-                        // ),
+
                         ExpansionTile(
                           leading: Icon(
                             Icons.description,
@@ -165,18 +151,7 @@ class MainScaffold extends StatelessWidget {
                             onTabTapped(1);
                           },
                         ),
-                        // ListTile(
-                        //   leading: Icon(Icons.tune, color: AppColors.primary),
-                        //   title: Text(
-                        //     'Paramètres',
-                        //     style: const TextStyle(color: AppColors.primary),
-                        //   ),
-                        //   selected: currentIndex == 2,
-                        //   onTap: () {
-                        //     Navigator.pop(context);
-                        //     onTabTapped(2);
-                        //   },
-                        // ),
+
                         ExpansionTile(
                           leading: Icon(Icons.tune, color: AppColors.primary),
                           title: Text(
@@ -350,13 +325,6 @@ class MainScaffold extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // HoverNavIcon(
-                            //   icon: Icons.description,
-                            //   label: 'Fichier',
-                            //   index: 0,
-
-                            //   onTap: (i) {},
-                            // ),
                             HoverNavMenu(
                               icon: Icons.description,
                               label: 'Fichier',
@@ -384,12 +352,7 @@ class MainScaffold extends StatelessWidget {
                               onTap: (i) {},
                             ),
                             const SizedBox(width: 100),
-                            // HoverNavIcon(
-                            //   icon: Icons.tune,
-                            //   label: 'Paramètres',
-                            //   index: 2,
-                            //   onTap: (i) {},
-                            // ),
+
                             HoverNavMenu(
                               icon: Icons.tune,
                               label: 'Paramètres',

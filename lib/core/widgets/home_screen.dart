@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 width: double.infinity,
                                 child: Center(
                                   child: Text(
-                                    "Video Stream Here",
+                                    "Video Stream Heere",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 24,
@@ -114,8 +114,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               // Video feed - 70%
                               Expanded(
-                                flex: 7,
+                                flex: 4,
                                 child: Container(
+                                  height: 500,
+                                  width: 500,
                                   margin: EdgeInsets.all(16),
                                   color: Colors.black,
                                   child: Center(
