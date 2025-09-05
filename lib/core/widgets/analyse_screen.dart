@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:thervision/core/constants/app_colors.dart';
 import 'package:thervision/core/widgets/MainScaffold.dart';
 
@@ -10,6 +16,9 @@ class AnalyseScreen extends StatefulWidget {
 }
 
 class _AnalyseScreenState extends State<AnalyseScreen> {
+  // Example variables for anomaly and recommendation
+  String anomalie = "Température élevée détectée";
+  String recommandation = "Vérifiez l'isolation et contactez un spécialiste.";
   int _selectedIndex = 0;
 
   void _onTabTapped(int index) {
@@ -174,10 +183,75 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
       width: isMobile ? 200 : 220,
       height: isMobile ? 50 : 55,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () async {
+          if (label == "Envoyer") {
+            String bodyText =
+                "Type anomalie : $anomalie\nRecommandation : $recommandation\n";
+            if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) {
+              // Web or desktop: use mailto link, include image link in body
+              bodyText +=
+                  "\nVeuillez trouver l'image thermique ici : https://yourdomain.com/assets/thermal.jpg";
+              final Uri emailLaunchUri = Uri(
+                scheme: 'mailto',
+                path: 'example@email.com',
+                query: encodeQueryParameters(<String, String>{
+                  'subject': 'Analyse',
+                  'body': bodyText,
+                }),
+              );
+              if (await canLaunchUrl(emailLaunchUri)) {
+                await launchUrl(emailLaunchUri);
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Impossible d'ouvrir le client email."),
+                    ),
+                  );
+                }
+              }
+            } else {
+              // Mobile: send with attachment
+              try {
+                final byteData = await rootBundle.load('assets/thermal.jpg');
+                final tempDir = await getTemporaryDirectory();
+                final file = File('${tempDir.path}/thermal.jpg');
+                await file.writeAsBytes(byteData.buffer.asUint8List());
+
+                bodyText +=
+                    "\nVeuillez trouver l'image thermique en pièce jointe.";
+                final Email email = Email(
+                  body: bodyText,
+                  subject: 'Analyse',
+                  recipients: ['example@email.com'],
+                  attachmentPaths: [file.path],
+                  isHTML: false,
+                );
+                await FlutterEmailSender.send(email);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur lors de l\'envoi de l\'email: $e'),
+                    ),
+                  );
+                }
+              }
+            }
+          }
+        },
         icon: Icon(icon, size: isMobile ? 20 : 24),
         label: Text(label, style: TextStyle(fontSize: isMobile ? 15 : 16)),
       ),
     );
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
+        .join('&');
   }
 }
