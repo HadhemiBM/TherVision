@@ -1,3 +1,5 @@
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:flutter/services.dart';
@@ -184,7 +186,34 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
       height: isMobile ? 50 : 55,
       child: ElevatedButton.icon(
         onPressed: () async {
-          if (label == "Envoyer") {
+          if (label == "Exporter") {
+            // Generate PDF with image and description
+            final pdf = pw.Document();
+            final imageBytes = await rootBundle.load('assets/thermal.jpg');
+            final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
+            pdf.addPage(
+              pw.Page(
+                build:
+                    (pw.Context context) => pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'Type anomalie : $anomalie',
+                          style: pw.TextStyle(fontSize: 18),
+                        ),
+                        pw.SizedBox(height: 16),
+                        pw.Text(
+                          'Recommandation : $recommandation',
+                          style: pw.TextStyle(fontSize: 18),
+                        ),
+                        pw.SizedBox(height: 24),
+                        pw.Image(image, width: 400, height: 300),
+                      ],
+                    ),
+              ),
+            );
+            await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+          } else if (label == "Envoyer") {
             String bodyText =
                 "Type anomalie : $anomalie\nRecommandation : $recommandation\n";
             if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) {
