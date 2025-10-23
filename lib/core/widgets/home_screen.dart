@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:thervision/core/constants/app_colors.dart';
 import 'package:thervision/core/routes/app_routes.dart';
 import 'MainScaffold.dart';
-import 'package:camera/camera.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,8 +13,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
+  RTCVideoRenderer? _localRenderer;
+  MediaStream? _localStream;
   bool _isCameraInitialized = false;
 
   void _onTabTapped(int index) {
@@ -172,24 +172,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initCamera() async {
     try {
-      _cameras = await availableCameras();
-      if (_cameras != null && _cameras!.isNotEmpty) {
-        final camera = _cameras!.firstWhere(
-          (c) => c.lensDirection == CameraLensDirection.back,
-          orElse: () => _cameras!.first,
-        );
+      _localRenderer = RTCVideoRenderer();
+      await _localRenderer!.initialize();
 
-        _cameraController = CameraController(
-          camera,
-          ResolutionPreset.medium,
-          enableAudio: false,
-        );
-        await _cameraController!.initialize();
-        if (!mounted) return;
-        setState(() {
-          _isCameraInitialized = true;
-        });
-      }
+      // Request user media (camera only)
+      final Map<String, dynamic> mediaConstraints = {
+        'audio': false,
+        'video': {'facingMode': 'environment'},
+      };
+
+      _localStream = await navigator.mediaDevices.getUserMedia(
+        mediaConstraints,
+      );
+      _localRenderer!.srcObject = _localStream;
+
+      if (!mounted) return;
+      setState(() {
+        _isCameraInitialized = true;
+      });
     } catch (e) {
       debugPrint('Camera initialization failed: $e');
       // leave _isCameraInitialized false; UI will show fallback
@@ -198,17 +198,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    try {
+      _localStream?.getTracks().forEach((t) => t.stop());
+    } catch (_) {}
+    _localRenderer?.dispose();
     super.dispose();
   }
 
   Widget _buildCameraPreview(BuildContext context) {
-    if (_isCameraInitialized && _cameraController != null) {
-      try {
-        return CameraPreview(_cameraController!);
-      } catch (e) {
-        debugPrint('CameraPreview error: $e');
-      }
+    if (_isCameraInitialized && _localRenderer != null) {
+      return RTCVideoView(
+        _localRenderer!,
+        objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+      );
     }
 
     return const Center(
