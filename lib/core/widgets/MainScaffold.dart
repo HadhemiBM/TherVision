@@ -9,8 +9,7 @@ import 'dart:io' show Platform, File;
 import 'package:flutter/services.dart' show rootBundle;
 // ignore: unused_import
 import 'package:image/image.dart' as imgpkg;
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'web_download.dart' as web_download;
 
 class MainScaffold extends StatelessWidget {
   final Widget body;
@@ -455,18 +454,8 @@ Future<void> _saveBundledImageAsPng(BuildContext context) async {
     final pngBytes = imgpkg.encodePng(decoded);
 
     if (kIsWeb) {
-      // trigger a browser download
-      final blob = html.Blob([pngBytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor =
-          html.document.createElement('a') as html.AnchorElement
-            ..href = url
-            ..download = 'thermal_export.png'
-            ..style.display = 'none';
-      html.document.body!.append(anchor);
-      anchor.click();
-      anchor.remove();
-      html.Url.revokeObjectUrl(url);
+      // Use conditional web helper which imports dart:html only on web.
+      await web_download.downloadBytesAsFile(pngBytes, 'thermal_export.png');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Téléchargement démarré')));

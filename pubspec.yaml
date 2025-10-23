@@ -45,6 +45,7 @@ dependencies:
 
   file_picker: ^6.1.1
   image: ^4.0.19
+  camera: ^0.10.0+4
 
 dev_dependencies:
   flutter_launcher_icons: "^0.14.1"

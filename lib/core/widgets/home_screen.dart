@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:thervision/core/constants/app_colors.dart';
 import 'package:thervision/core/routes/app_routes.dart';
-import 'package:thervision/core/widgets/analyse_screen.dart';
-
 import 'MainScaffold.dart';
+import 'package:camera/camera.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +13,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  bool _isCameraInitialized = false;
 
   void _onTabTapped(int index) {
     setState(() {
@@ -63,22 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Video feed
+                              // Video feed (mobile)
                               Container(
-                                margin: EdgeInsets.all(16),
+                                margin: const EdgeInsets.all(16),
                                 color: Colors.black,
                                 height: 300,
-
                                 width: double.infinity,
-                                child: Center(
-                                  child: Text(
-                                    "Video Stream Heere",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                    ),
-                                  ),
-                                ),
+                                child: _buildCameraPreview(context),
                               ),
                               SizedBox(height: 20),
                               // Buttons
@@ -118,17 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   height: 500,
                                   width: 500,
-                                  margin: EdgeInsets.all(16),
+                                  margin: const EdgeInsets.all(16),
                                   color: Colors.black,
-                                  child: Center(
-                                    child: Text(
-                                      "Video Stream Here",
-                                      style: TextStyle(
-                                        color: AppColors.white,
-                                        fontSize: 24,
-                                      ),
-                                    ),
-                                  ),
+                                  child: _buildCameraPreview(context),
                                 ),
                               ),
                               // Buttons - 30%
@@ -175,6 +160,61 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         currentIndex: _selectedIndex,
         onTabTapped: _onTabTapped,
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras != null && _cameras!.isNotEmpty) {
+        final camera = _cameras!.firstWhere(
+          (c) => c.lensDirection == CameraLensDirection.back,
+          orElse: () => _cameras!.first,
+        );
+
+        _cameraController = CameraController(
+          camera,
+          ResolutionPreset.medium,
+          enableAudio: false,
+        );
+        await _cameraController!.initialize();
+        if (!mounted) return;
+        setState(() {
+          _isCameraInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Camera initialization failed: $e');
+      // leave _isCameraInitialized false; UI will show fallback
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
+
+  Widget _buildCameraPreview(BuildContext context) {
+    if (_isCameraInitialized && _cameraController != null) {
+      try {
+        return CameraPreview(_cameraController!);
+      } catch (e) {
+        debugPrint('CameraPreview error: $e');
+      }
+    }
+
+    return const Center(
+      child: Text(
+        'Camera unavailable',
+        style: TextStyle(color: Colors.white, fontSize: 20),
       ),
     );
   }
