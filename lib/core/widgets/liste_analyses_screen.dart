@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:thervision/component/footer.dart';
 
 class ListeAnalysesScreen extends StatefulWidget {
   const ListeAnalysesScreen({Key? key}) : super(key: key);
@@ -112,6 +113,7 @@ class _ListeAnalysesScreenState extends State<ListeAnalysesScreen> {
               ],
             ),
             // const SizedBox(height: 24),
+            const Footer(),
             // Row(
             //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
             //   children: const [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:thervision/component/footer.dart';
 
 class ListeAnalysesTableScreen extends StatefulWidget {
   const ListeAnalysesTableScreen({Key? key}) : super(key: key);
@@ -35,6 +36,7 @@ class _ListeAnalysesTableScreenState extends State<ListeAnalysesTableScreen> {
       'statut': 'Analysé',
     },
   ];
+
   int currentPage = 1;
   final int totalPages = 3;
   String search = '';
@@ -42,16 +44,17 @@ class _ListeAnalysesTableScreenState extends State<ListeAnalysesTableScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
+      body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           children: [
             Container(
-              margin: const EdgeInsets.only(bottom: 16),
+              margin: const EdgeInsets.only(bottom: 16, top: 16),
+              width: MediaQuery.of(context).size.width * 0.9,
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Rechercher un fichier ...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -61,88 +64,92 @@ class _ListeAnalysesTableScreenState extends State<ListeAnalysesTableScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                child: DataTable(
-                  columnSpacing: 16,
-                  headingRowHeight: 48,
-                  dataRowHeight: 64,
-                  columns: const [
-                    DataColumn(label: Text('Image')),
-                    DataColumn(label: Text('Nom')),
-                    DataColumn(label: Text('Date')),
-                    DataColumn(label: Text('Anomalie')),
-                    DataColumn(label: Text('Recommandation')),
-                    DataColumn(label: Text('Statue')),
-                    DataColumn(label: Text('Action')),
-                  ],
-                  rows:
-                      analyses.map((a) {
-                        return DataRow(
-                          cells: [
-                            DataCell(
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  a['image'],
-                                  width: 48,
-                                  height: 48,
-                                  fit: BoxFit.cover,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  child: DataTable(
+                    columnSpacing: 16,
+                    headingRowHeight: 48,
+                    dataRowHeight: 64,
+                    columns: const [
+                      DataColumn(label: Text('Image')),
+                      DataColumn(label: Text('Nom')),
+                      DataColumn(label: Text('Date')),
+                      DataColumn(label: Text('Anomalie')),
+                      DataColumn(label: Text('Recommandation')),
+                      DataColumn(label: Text('Statut')),
+                      DataColumn(label: Text('Action')),
+                    ],
+                    rows:
+                        analyses.map((a) {
+                          return DataRow(
+                            cells: [
+                              DataCell(
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    a['image'],
+                                    width: 48,
+                                    height: 48,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataCell(Text(a['nom'])),
-                            DataCell(Text(a['date'])),
-                            DataCell(Text(a['anomalie'])),
-                            DataCell(Text(a['recommandation'])),
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      a['statut'] == 'Analysé'
-                                          ? Colors.blue.shade50
-                                          : Colors.orange.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  a['statut'],
-                                  style: TextStyle(
+                              DataCell(Text(a['nom'])),
+                              DataCell(Text(a['date'])),
+                              DataCell(Text(a['anomalie'])),
+                              DataCell(Text(a['recommandation'])),
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
                                     color:
                                         a['statut'] == 'Analysé'
-                                            ? Colors.blue
-                                            : Colors.orange,
-                                    fontWeight: FontWeight.bold,
+                                            ? Colors.blue.shade50
+                                            : Colors.orange.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    a['statut'],
+                                    style: TextStyle(
+                                      color:
+                                          a['statut'] == 'Analysé'
+                                              ? Colors.blue
+                                              : Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            DataCell(
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.person_outline),
-                                    onPressed: () {},
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.email_outlined),
-                                    onPressed: () {},
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined),
-                                    onPressed: () {},
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: () {},
-                                  ),
-                                ],
+                              DataCell(
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.person_outline),
+                                      onPressed: () {},
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.email_outlined),
+                                      onPressed: () {},
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined),
+                                      onPressed: () {},
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline),
+                                      onPressed: () {},
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                            ],
+                          );
+                        }).toList(),
+                  ),
                 ),
               ),
             ),
@@ -190,16 +197,7 @@ class _ListeAnalysesTableScreenState extends State<ListeAnalysesTableScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('← Retour', style: TextStyle(fontSize: 16)),
-                Text(
-                  '@4inaTechnology',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ],
-            ),
+            const Footer(),
           ],
         ),
       ),
