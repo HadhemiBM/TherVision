@@ -106,7 +106,7 @@ class _ListeAnalysesTableScreenState extends State<ListeAnalysesTableScreen> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
+                                    color :
                                         a['statut'] == 'Analysé'
                                             ? Colors.blue.shade50
                                             : Colors.orange.shade50,

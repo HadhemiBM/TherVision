@@ -3,8 +3,14 @@ import 'package:thervision/core/routes/app_routes.dart';
 import 'package:thervision/component/footer.dart';
 import '../constants/app_colors.dart';
 import 'package:file_picker/file_picker.dart';
+// ignore: unused_import
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, File;
+import 'package:flutter/services.dart' show rootBundle;
+// ignore: unused_import
+import 'package:image/image.dart' as imgpkg;
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 class MainScaffold extends StatelessWidget {
   final Widget body;
@@ -118,10 +124,10 @@ class MainScaffold extends StatelessWidget {
                                   color: AppColors.primary,
                                 ),
                               ),
-                              onTap: () {
-                                // Navigator.pop(context);
+                              onTap: () async {
+                                // Save bundled image as PNG
+                                await _saveBundledImageAsPng(context);
                                 onTabTapped(2);
-                                print("Enregistrer selected");
                               },
                             ),
                             // ListTile(
@@ -422,6 +428,7 @@ class MainScaffold extends StatelessWidget {
   }
 
   // Helper for nav icons
+  // ignore: unused_element
   Widget _buildNavIcon(IconData icon, int index) {
     return GestureDetector(
       onTap: () => onTabTapped(index),
@@ -431,6 +438,62 @@ class MainScaffold extends StatelessWidget {
         color: AppColors.primary, // couleur sombre des icônes
       ),
     );
+  }
+}
+
+// Saves the bundled asset 'assets/thermal.jpg' as a PNG into a user-picked folder.
+Future<void> _saveBundledImageAsPng(BuildContext context) async {
+  try {
+    const assetPath = 'assets/thermal.jpg';
+    final data = await rootBundle.load(assetPath);
+    final bytes = data.buffer.asUint8List();
+
+    // decode and encode as PNG using image package
+    final decoded = imgpkg.decodeImage(bytes);
+    if (decoded == null)
+      throw Exception('Impossible de décoder l\'image source');
+    final pngBytes = imgpkg.encodePng(decoded);
+
+    if (kIsWeb) {
+      // trigger a browser download
+      final blob = html.Blob([pngBytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor =
+          html.document.createElement('a') as html.AnchorElement
+            ..href = url
+            ..download = 'thermal_export.png'
+            ..style.display = 'none';
+      html.document.body!.append(anchor);
+      anchor.click();
+      anchor.remove();
+      html.Url.revokeObjectUrl(url);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Téléchargement démarré')));
+      return;
+    }
+
+    // Non-web: pick destination folder then write file
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucun dossier sélectionné')),
+      );
+      return;
+    }
+
+    final filePath =
+        '$selectedDirectory${Platform.pathSeparator}thermal_export.png';
+    final file = File(filePath);
+    await file.writeAsBytes(pngBytes, flush: true);
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Image enregistrée: $filePath')));
+  } catch (e) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Erreur lors de la sauvegarde: $e')));
   }
 }
 
@@ -629,7 +692,7 @@ class _HoverNavMenuState extends State<HoverNavMenu> {
                     print("Aucun fichier choisi");
                   }
                 } else if (value == 'save') {
-                  print("Enregistrer sous");
+                  await _saveBundledImageAsPng(context);
                 } else if (value == 'import') {
                   FilePickerResult? result = await FilePicker.platform
                       .pickFiles(
