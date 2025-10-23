@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:thervision/core/routes/app_routes.dart';
 import 'package:thervision/component/footer.dart';
 import '../constants/app_colors.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 
 class MainScaffold extends StatelessWidget {
   final Widget body;
@@ -77,15 +80,25 @@ class MainScaffold extends StatelessWidget {
                                 color: AppColors.primary,
                               ),
                               title: const Text(
-                                "Ouvrir fichier",
+                                "Importer image ",
                                 style: const TextStyle(
                                   color: AppColors.primary,
                                 ),
                               ),
-                              onTap: () {
-                                // Navigator.pop(context);
+                              onTap: () async {
+                                // Open directory explorer
+                                String? selectedDirectory =
+                                    await FilePicker.platform
+                                        .getDirectoryPath();
+                                if (selectedDirectory != null) {
+                                  print(
+                                    "Dossier sélectionné : $selectedDirectory",
+                                  );
+                                  // You can handle the directory here
+                                } else {
+                                  print("Aucun dossier sélectionné");
+                                }
                                 onTabTapped(1);
-                                print("Ouvrir selected");
                               },
                             ),
                             ListTile(
@@ -111,28 +124,28 @@ class MainScaffold extends StatelessWidget {
                                 print("Enregistrer selected");
                               },
                             ),
-                            ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                left: 32.0,
-                                right: 16.0,
-                              ),
-                              leading: Icon(
-                                Icons.file_upload,
-                                size: 18.0,
-                                color: AppColors.primary,
-                              ),
-                              title: const Text(
-                                "Importer image",
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                onTabTapped(3);
-                                print("export selected");
-                              },
-                            ),
+                            // ListTile(
+                            //   contentPadding: const EdgeInsets.only(
+                            //     left: 32.0,
+                            //     right: 16.0,
+                            //   ),
+                            //   leading: Icon(
+                            //     Icons.file_upload,
+                            //     size: 18.0,
+                            //     color: AppColors.primary,
+                            //   ),
+                            //   title: const Text(
+                            //     "Importer image",
+                            //     style: const TextStyle(
+                            //       color: AppColors.primary,
+                            //     ),
+                            //   ),
+                            //   onTap: () {
+                            //     Navigator.pop(context);
+                            //     onTabTapped(3);
+                            //     print("export selected");
+                            //   },
+                            // ),
                           ],
                         ),
                         ListTile(
@@ -331,16 +344,16 @@ class MainScaffold extends StatelessWidget {
                               items: [
                                 PopupMenuItem(
                                   value: 'open',
-                                  child: Text('Ouvrir fichier'),
+                                  child: Text('Importer image '),
                                 ),
                                 PopupMenuItem(
                                   value: 'save',
                                   child: Text('Enregistrer sous'),
                                 ),
-                                PopupMenuItem(
-                                  value: 'import',
-                                  child: Text('Importer image'),
-                                ),
+                                // PopupMenuItem(
+                                //   value: 'import',
+                                //   child: Text('Importer image'),
+                                // ),
                               ],
                             ),
 
@@ -569,19 +582,65 @@ class _HoverNavMenuState extends State<HoverNavMenu> {
               ),
             ],
             // invisible PopupMenuButton (juste pour générer le menu)
+            // PopupMenuButton<String>(
+            //   key: _menuKey,
+            //   itemBuilder: (context) => widget.items,
+            //   onSelected: (value) {
+            //     if (value == 'open') {
+            //       print("Importer image ");
+            //     } else if (value == 'save') {
+            //       print("Enregistrer sous");
+            //     } else if (value == 'import') {
+            //       print("Importer image");
+            //     }
+            //   },
+            //   // on cache complètement le bouton par défaut
+            //   child: const SizedBox.shrink(),
+            // ),
             PopupMenuButton<String>(
               key: _menuKey,
               itemBuilder: (context) => widget.items,
-              onSelected: (value) {
+              // onSelected: (value) async {
+              //   if (value == 'open') {
+              //     String? selectedDirectory =
+              //         await FilePicker.platform.getDirectoryPath();
+              //     if (selectedDirectory != null) {
+              //       print("Dossier sélectionné : $selectedDirectory");
+              //       // ici tu peux faire autre chose avec le chemin
+              //     } else {
+              //       print("Aucun dossier sélectionné");
+              //     }
+              //   } else if (value == 'save') {
+              //     print("Enregistrer sous");
+              //   } else if (value == 'import') {
+              //     print("Importer image");
+              //   }
+              // },
+              onSelected: (value) async {
                 if (value == 'open') {
-                  print("Ouvrir fichier");
+                  FilePickerResult? result =
+                      await FilePicker.platform.pickFiles();
+
+                  if (result != null) {
+                    print("Fichier choisi : ${result.files.single.name}");
+                    // si besoin du chemin natif (mobile/desktop seulement) :
+                    print("Chemin complet : ${result.files.single.path}");
+                  } else {
+                    print("Aucun fichier choisi");
+                  }
                 } else if (value == 'save') {
                   print("Enregistrer sous");
                 } else if (value == 'import') {
-                  print("Importer image");
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles(
+                        type: FileType.image, // uniquement images
+                      );
+                  if (result != null) {
+                    print("Image importée : ${result.files.single.name}");
+                  }
                 }
               },
-              // on cache complètement le bouton par défaut
+
               child: const SizedBox.shrink(),
             ),
           ],

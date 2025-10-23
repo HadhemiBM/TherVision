@@ -1,3 +1,4 @@
+import 'package:thervision/core/widgets/liste_analyses_screen.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:thervision/core/widgets/liste_analyses_table_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:thervision/core/constants/app_colors.dart';
 import 'package:thervision/core/widgets/MainScaffold.dart';
@@ -187,7 +189,7 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
       child: ElevatedButton.icon(
         onPressed: () async {
           if (label == "Exporter") {
-            // Generate PDF with image and description
+            // ...existing code...
             final pdf = pw.Document();
             final imageBytes = await rootBundle.load('assets/thermal.jpg');
             final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
@@ -214,10 +216,10 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
             );
             await Printing.layoutPdf(onLayout: (format) async => pdf.save());
           } else if (label == "Envoyer") {
+            // ...existing code...
             String bodyText =
                 "Type anomalie : $anomalie\nRecommandation : $recommandation\n";
             if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) {
-              // Web or desktop: use mailto link, include image link in body
               bodyText +=
                   "\nVeuillez trouver l'image thermique ici : https://yourdomain.com/assets/thermal.jpg";
               final Uri emailLaunchUri = Uri(
@@ -240,7 +242,6 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
                 }
               }
             } else {
-              // Mobile: send with attachment
               try {
                 final byteData = await rootBundle.load('assets/thermal.jpg');
                 final tempDir = await getTemporaryDirectory();
@@ -266,6 +267,15 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
                   );
                 }
               }
+            }
+          } else if (label == "Liste") {
+            // Navigate to ListeAnalysesScreen
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ListeAnalysesTableScreen(),
+                ),
+              );
             }
           }
         },
