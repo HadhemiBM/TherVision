@@ -41,6 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initCamera() async {
     try {
+      // Clean up any existing renderer/stream before creating a new one
+      try {
+        _localStream?.getTracks().forEach((t) => t.stop());
+      } catch (_) {}
+      try {
+        await _localRenderer?.dispose();
+      } catch (_) {}
+
       _localRenderer = RTCVideoRenderer();
       await _localRenderer!.initialize();
 
@@ -61,6 +69,16 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       debugPrint('Camera initialization failed: $e');
     }
+  }
+
+  Future<void> _retake() async {
+    // Clear captured image and restart the camera preview
+    setState(() {
+      _capturedImageBytes = null;
+      _isCameraInitialized = false;
+    });
+
+    await _initCamera();
   }
 
   @override
@@ -132,12 +150,12 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: _capturePhoto,
+              onPressed: _capturedImageBytes != null ? _retake : _capturePhoto,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(180, 50),
                 maximumSize: const Size(220, 50),
               ),
-              child: const Text('Capture'),
+              child: Text(_capturedImageBytes != null ? 'Retry' : 'Capture'),
             ),
             const SizedBox(width: 20),
             ElevatedButton(
@@ -186,11 +204,15 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: _capturePhoto,
+                onPressed:
+                    _capturedImageBytes != null ? _retake : _capturePhoto,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(250, 60),
                 ),
-                child: const Text('Capture', style: TextStyle(fontSize: 18)),
+                child: Text(
+                  _capturedImageBytes != null ? 'Retry' : 'Capture',
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
