@@ -1,16 +1,16 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:thervision/core/constants/app_colors.dart';
-import 'package:thervision/core/routes/app_routes.dart';
+// routes import removed — navigation to AnalyseScreen now uses MaterialPageRoute
 
 import 'MainScaffold.dart';
 import 'web_video_capture.dart' as web_capture;
+import 'analyse_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
   RTCVideoRenderer? _localRenderer;
   MediaStream? _localStream;
   bool _isCameraInitialized = false;
@@ -142,11 +141,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 20),
             ElevatedButton(
-              onPressed:
-                  () => Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.analyse,
-                  ),
+              onPressed: () {
+                if (_capturedImageBytes != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder:
+                          (c) => AnalyseScreen(imageBytes: _capturedImageBytes),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Aucune image capturée. Veuillez capturer une image avant d'analyse.",
+                      ),
+                    ),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(minimumSize: const Size(180, 50)),
               child: const Text('Analyse'),
             ),
@@ -182,11 +194,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed:
-                    () => Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.analyse,
-                    ),
+                onPressed: () {
+                  if (_capturedImageBytes != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (c) =>
+                                AnalyseScreen(imageBytes: _capturedImageBytes),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Aucune image capturée. Veuillez capturer une image avant d'analyse.",
+                        ),
+                      ),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(250, 60),
                 ),
@@ -248,6 +274,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _localStream?.getTracks().forEach((t) => t.stop());
         } catch (_) {}
 
+        // Save captured bytes in-memory and show them in the preview area.
+        if (!mounted) return;
         setState(() {
           _capturedImageBytes = bytes;
           _isCameraInitialized = false;

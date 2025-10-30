@@ -1,6 +1,6 @@
-import 'package:thervision/core/widgets/liste_analyses_screen.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +13,12 @@ import 'package:thervision/core/constants/app_colors.dart';
 import 'package:thervision/core/widgets/MainScaffold.dart';
 
 class AnalyseScreen extends StatefulWidget {
-  const AnalyseScreen({super.key});
+  // Optional captured image: either bytes (web/in-memory) or a file path
+  final Uint8List? imageBytes;
+  final String? imagePath;
+
+  const AnalyseScreen({Key? key, this.imageBytes, this.imagePath})
+    : super(key: key);
 
   @override
   _AnalyseScreenState createState() => _AnalyseScreenState();
@@ -76,7 +81,7 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
                     mainAxisAlignment:
                         MainAxisAlignment.center, // ⬅️ vertical center inside
                     children: [
-                      // Image thermique
+                      // Image thermique (captured image if provided)
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -84,11 +89,9 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            "assets/thermal.jpg",
-                            fit: BoxFit.cover,
-                            height: 300,
-                            width: 400,
+                          child: _buildThermalImage(
+                            widget.imageBytes,
+                            widget.imagePath,
                           ),
                         ),
                       ),
@@ -189,10 +192,14 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
       child: ElevatedButton.icon(
         onPressed: () async {
           if (label == "Exporter") {
-            // ...existing code...
+            // Build PDF using captured image if available, otherwise fallback to bundled asset
             final pdf = pw.Document();
-            final imageBytes = await rootBundle.load('assets/thermal.jpg');
-            final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
+            final Uint8List imageData =
+                widget.imageBytes ??
+                (await rootBundle.load(
+                  'assets/thermal.jpg',
+                )).buffer.asUint8List();
+            final image = pw.MemoryImage(imageData);
             pdf.addPage(
               pw.Page(
                 build:
@@ -243,10 +250,15 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
               }
             } else {
               try {
-                final byteData = await rootBundle.load('assets/thermal.jpg');
+                // Prefer captured bytes if available
+                final Uint8List bytes =
+                    widget.imageBytes ??
+                    (await rootBundle.load(
+                      'assets/thermal.jpg',
+                    )).buffer.asUint8List();
                 final tempDir = await getTemporaryDirectory();
                 final file = File('${tempDir.path}/thermal.jpg');
-                await file.writeAsBytes(byteData.buffer.asUint8List());
+                await file.writeAsBytes(bytes);
 
                 bodyText +=
                     "\nVeuillez trouver l'image thermique en pièce jointe.";
@@ -292,5 +304,27 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
               '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
         )
         .join('&');
+  }
+
+  Widget _buildThermalImage(Uint8List? bytes, String? path) {
+    if (bytes != null) {
+      return Image.memory(bytes, fit: BoxFit.cover, height: 300, width: 400);
+    }
+
+    if (path != null) {
+      try {
+        final file = File(path);
+        if (file.existsSync()) {
+          return Image.file(file, fit: BoxFit.cover, height: 300, width: 400);
+        }
+      } catch (_) {}
+    }
+
+    return Image.asset(
+      'assets/thermal.jpg',
+      fit: BoxFit.cover,
+      height: 300,
+      width: 400,
+    );
   }
 }
