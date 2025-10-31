@@ -113,6 +113,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       child: MainScaffold(
+        onImageImported: (bytes) async {
+          // If an image was imported, show it in the preview and stop camera
+          if (!mounted) return;
+          if (bytes != null) {
+            try {
+              _localStream?.getTracks().forEach((t) => t.stop());
+            } catch (_) {}
+            setState(() {
+              _capturedImageBytes = bytes;
+              _isCameraInitialized = false;
+            });
+          }
+        },
         body: Stack(
           children: [
             Positioned.fill(

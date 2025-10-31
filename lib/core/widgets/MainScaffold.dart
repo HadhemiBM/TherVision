@@ -3,6 +3,7 @@ import 'package:thervision/core/routes/app_routes.dart';
 import 'package:thervision/component/footer.dart';
 import '../constants/app_colors.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 // ignore: unused_import
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform, File;
@@ -15,12 +16,15 @@ class MainScaffold extends StatelessWidget {
   final Widget body;
   final int currentIndex;
   final Function(int) onTabTapped;
+  // optional callback invoked when user imports an image from the nav
+  final ValueChanged<Uint8List?>? onImageImported;
 
   const MainScaffold({
     super.key,
     required this.body,
     required this.currentIndex,
     required this.onTabTapped,
+    this.onImageImported,
   });
 
   @override
@@ -91,19 +95,43 @@ class MainScaffold extends StatelessWidget {
                                 ),
                               ),
                               onTap: () async {
-                                // Open directory explorer
-                                String? selectedDirectory =
-                                    await FilePicker.platform
-                                        .getDirectoryPath();
-                                if (selectedDirectory != null) {
-                                  print(
-                                    "Dossier sélectionné : $selectedDirectory",
-                                  );
-                                  // You can handle the directory here
+                                // Close the drawer first so the picker isn't behind it
+                                Navigator.of(context).pop();
+
+                                // Pick a single image file (behaves like desktop top-nav import)
+                                FilePickerResult? result = await FilePicker
+                                    .platform
+                                    .pickFiles(
+                                      type: FileType.image,
+                                      withData: true,
+                                    );
+
+                                if (result != null) {
+                                  final pf = result.files.single;
+                                  print("Fichier choisi : ${pf.name}");
+
+                                  Uint8List? bytes = pf.bytes;
+                                  // On web 'path' is unavailable; only attempt to read path on non-web
+                                  if (bytes == null && !kIsWeb) {
+                                    final String? p = pf.path;
+                                    if (p != null) {
+                                      try {
+                                        bytes = await File(p).readAsBytes();
+                                      } catch (e) {
+                                        debugPrint(
+                                          'Unable to read picked file bytes: $e',
+                                        );
+                                      }
+                                    }
+                                  }
+
+                                  // Notify parent (if any) with imported bytes (may be null)
+                                  try {
+                                    onImageImported?.call(bytes);
+                                  } catch (_) {}
                                 } else {
-                                  print("Aucun dossier sélectionné");
+                                  print("Aucun fichier choisi");
                                 }
-                                onTabTapped(1);
                               },
                             ),
                             ListTile(
@@ -124,9 +152,9 @@ class MainScaffold extends StatelessWidget {
                                 ),
                               ),
                               onTap: () async {
-                                // Save bundled image as PNG
+                                // Close drawer then save bundled image as PNG (do not navigate)
+                                Navigator.of(context).pop();
                                 await _saveBundledImageAsPng(context);
-                                onTabTapped(2);
                               },
                             ),
                             // ListTile(
@@ -360,6 +388,7 @@ class MainScaffold extends StatelessWidget {
                                 //   child: Text('Importer image'),
                                 // ),
                               ],
+                              onImageImported: onImageImported,
                             ),
 
                             const SizedBox(width: 100),
@@ -587,12 +616,15 @@ class HoverNavMenu extends StatefulWidget {
   final IconData icon;
   final String label;
   final List<PopupMenuEntry<String>> items;
+  // callback to notify parent that an image was imported (bytes may be null)
+  final ValueChanged<Uint8List?>? onImageImported;
 
   const HoverNavMenu({
     super.key,
     required this.icon,
     required this.label,
     required this.items,
+    this.onImageImported,
   });
 
   @override
@@ -669,27 +701,40 @@ class _HoverNavMenuState extends State<HoverNavMenu> {
               //   }
               // },
               onSelected: (value) async {
-                if (value == 'open') {
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles();
+                if (value == 'open' || value == 'import') {
+                  // allow either menu item to pick a file
+                  FilePickerResult? result = await FilePicker.platform
+                      .pickFiles(
+                        type: FileType.image,
+                        withData: true, // try to get bytes on web
+                      );
 
                   if (result != null) {
-                    print("Fichier choisi : ${result.files.single.name}");
-                    // si besoin du chemin natif (mobile/desktop seulement) :
-                    print("Chemin complet : ${result.files.single.path}");
+                    final pf = result.files.single;
+                    print("Fichier choisi : ${pf.name}");
+                    Uint8List? bytes = pf.bytes;
+                    // On web the `path` getter is unavailable and will throw.
+                    // Only access it on non-web platforms.
+                    if (bytes == null && !kIsWeb) {
+                      final String? p = pf.path;
+                      if (p != null) {
+                        try {
+                          bytes = await File(p).readAsBytes();
+                        } catch (e) {
+                          debugPrint('Unable to read picked file bytes: $e');
+                        }
+                      }
+                    }
+
+                    // Notify parent (if any) with imported bytes (may be null)
+                    try {
+                      widget.onImageImported?.call(bytes);
+                    } catch (_) {}
                   } else {
                     print("Aucun fichier choisi");
                   }
                 } else if (value == 'save') {
                   await _saveBundledImageAsPng(context);
-                } else if (value == 'import') {
-                  FilePickerResult? result = await FilePicker.platform
-                      .pickFiles(
-                        type: FileType.image, // uniquement images
-                      );
-                  if (result != null) {
-                    print("Image importée : ${result.files.single.name}");
-                  }
                 }
               },
 

@@ -194,12 +194,21 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
           if (label == "Exporter") {
             // Build PDF using captured image if available, otherwise fallback to bundled asset
             final pdf = pw.Document();
+            // Load a Unicode-capable font from assets so PDF text renders correctly
+            // Make sure you have added the TTF file to assets/fonts/DejaVuSans.ttf
+            // and listed it in pubspec.yaml (assets section).
+            final fontData = await rootBundle.load(
+              'assets/fonts/DejaVuSans.ttf',
+            );
+            final ttf = pw.Font.ttf(fontData);
+
             final Uint8List imageData =
                 widget.imageBytes ??
                 (await rootBundle.load(
                   'assets/thermal.jpg',
                 )).buffer.asUint8List();
             final image = pw.MemoryImage(imageData);
+
             pdf.addPage(
               pw.Page(
                 build:
@@ -208,12 +217,12 @@ class _AnalyseScreenState extends State<AnalyseScreen> {
                       children: [
                         pw.Text(
                           'Type anomalie : $anomalie',
-                          style: pw.TextStyle(fontSize: 18),
+                          style: pw.TextStyle(font: ttf, fontSize: 18),
                         ),
                         pw.SizedBox(height: 16),
                         pw.Text(
                           'Recommandation : $recommandation',
-                          style: pw.TextStyle(fontSize: 18),
+                          style: pw.TextStyle(font: ttf, fontSize: 18),
                         ),
                         pw.SizedBox(height: 24),
                         pw.Image(image, width: 400, height: 300),
